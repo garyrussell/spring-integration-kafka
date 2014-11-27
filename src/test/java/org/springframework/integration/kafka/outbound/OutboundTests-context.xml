@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka-1.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+	<int:publish-subscribe-channel id="inputToKafka"/>
+
+	<int-kafka:outbound-channel-adapter id="kafkaOutboundChannelAdapter"
+										kafka-producer-context-ref="kafkaProducerContext"
+										auto-startup="true"
+										order="1"
+										channel="inputToKafka" />
+
+	<int-kafka:producer-context id="kafkaProducerContext" producer-properties="producerProps">
+		<int-kafka:producer-configurations>
+			<int-kafka:producer-configuration broker-list="localhost:9092"
+											  async="true"
+											  topic="test"
+											  key-class-type="java.lang.String"
+											  key-encoder="encoder"
+											  value-class-type="java.lang.String"
+											  value-encoder="encoder"
+											  compression-codec="default"/>
+		</int-kafka:producer-configurations>
+	</int-kafka:producer-context>
+
+	<util:properties id="producerProps">
+		<prop key="queue.buffering.max.ms">500</prop>
+	</util:properties>
+
+	<bean id="encoder" class="org.springframework.integration.kafka.serializer.common.StringEncoder" />
+
+	<task:executor id="taskExecutor" pool-size="5" keep-alive="120" queue-capacity="500"/>
+
+</beans>

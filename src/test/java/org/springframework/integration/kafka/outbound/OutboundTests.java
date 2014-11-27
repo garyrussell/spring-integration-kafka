@@ -16,23 +16,41 @@
 package org.springframework.integration.kafka.outbound;
 
 import java.util.Collections;
+import java.util.Properties;
 
 import kafka.serializer.Encoder;
 
+import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.kafka.serializer.common.StringEncoder;
 import org.springframework.integration.kafka.support.KafkaProducerContext;
 import org.springframework.integration.kafka.support.ProducerConfiguration;
 import org.springframework.integration.kafka.support.ProducerFactoryBean;
 import org.springframework.integration.kafka.support.ProducerMetadata;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
  *
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
 public class OutboundTests {
+
+	@Autowired
+	private MessageChannel inputToKafka;
+
+	@AfterClass
+	public static void afterClass() throws Exception {
+		// give the producer queues enough time to flush
+		Thread.sleep(2000);
+	}
 
 	@Test
 	public void test() throws Exception {
@@ -43,7 +61,11 @@ public class OutboundTests {
 		Encoder<String> encoder = new StringEncoder<String>();
 		producerMetadata.setValueEncoder(encoder);
 		producerMetadata.setKeyEncoder(encoder);
-		ProducerFactoryBean<String, String> producer = new ProducerFactoryBean<String, String>(producerMetadata, "localhost:9092");
+		producerMetadata.setAsync(true);
+		Properties props = new Properties();
+		props.put("queue.buffering.max.ms", "500");
+		ProducerFactoryBean<String, String> producer = new ProducerFactoryBean<String, String>(producerMetadata,
+				"localhost:9092", props);
 		ProducerConfiguration<String, String> config = new ProducerConfiguration<String, String>(producerMetadata, producer.getObject());
 		kafkaProducerContext.setProducerConfigurations(Collections.singletonMap("test", config));
 		KafkaProducerMessageHandler<String, String> handler = new KafkaProducerMessageHandler<String, String>(kafkaProducerContext);
@@ -51,6 +73,14 @@ public class OutboundTests {
 				.setHeader("messagekey", "3")
 				.setHeader("topic", "test")
 				.build());
+	}
+
+	@Test
+	public void testWithXML() {
+		this.inputToKafka.send(MessageBuilder.withPayload("bar")
+			.setHeader("messagekey", "3")
+			.setHeader("topic", "test")
+			.build());
 	}
 
 }
