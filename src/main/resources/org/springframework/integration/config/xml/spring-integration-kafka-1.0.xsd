@@ -444,7 +444,7 @@
 			<xsd:attribute name="message-key" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-								Specifies the Key for Kafka message.
+								Specifies the Key for the Kafka message.
 								This attribute is mutually exclusive with 'message-key-expression' attribute.
 							]]></xsd:documentation>
 				</xsd:annotation>
@@ -452,7 +452,7 @@
 			<xsd:attribute name="message-key-expression" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-								Specifies the expression to determine the the Key for Kafka message
+								Specifies the expression to determine the Key for Kafka message
 								against the Message at runtime.
 								This attribute is mutually exclusive with 'message-key' attribute.
 							]]></xsd:documentation>

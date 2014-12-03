@@ -15,6 +15,9 @@
  */
 package org.springframework.integration.kafka.rule;
 
+import kafka.utils.ZKStringSerializer$;
+import kafka.utils.ZkUtils;
+
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,9 +27,6 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import org.springframework.integration.kafka.core.ZookeeperConnectDefaults;
-
-import kafka.utils.ZKStringSerializer$;
-import kafka.utils.ZkUtils;
 
 /**
  * <p>
@@ -56,16 +56,22 @@ public class KafkaRunning extends TestWatcher {
 		return new KafkaRunning();
 	}
 
+	private ZkClient zkClient;
+
+	public ZkClient getZkClient() {
+		return zkClient;
+	}
+
 	@Override
 	public Statement apply(Statement base, Description description) {
 		try {
-			ZkClient zkClient = new ZkClient(ZOOKEEPER_CONNECT_STRING, 1000, 1000, ZKStringSerializer$.MODULE$);
+			zkClient = new ZkClient(ZOOKEEPER_CONNECT_STRING, 1000, 1000, ZKStringSerializer$.MODULE$);
 			if (ZkUtils.getAllBrokersInCluster(zkClient).size() == 0) {
 				throw new IllegalStateException("No running Kafka brokers");
 			}
 		}
 		catch (Exception e) {
-			logger.warn("Not executing tests because basic connectivity test failed", e);
+			logger.warn("Not executing tests because basic connectivity test failed");
 			Assume.assumeNoException(e);
 		}
 
