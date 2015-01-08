@@ -112,7 +112,8 @@ public class ConsumerConfiguration<K, V> {
 									}
 								}
 							}
-						} catch (ConsumerTimeoutException cte) {
+						}
+						catch (ConsumerTimeoutException cte) {
 							LOGGER.debug("Consumer timed out");
 						}
 						return rawMessages;
@@ -143,7 +144,8 @@ public class ConsumerConfiguration<K, V> {
 					}
 				}
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			if (!this.stopped) {
 				throw new MessagingException("Consuming from Kafka failed", e);
 			}

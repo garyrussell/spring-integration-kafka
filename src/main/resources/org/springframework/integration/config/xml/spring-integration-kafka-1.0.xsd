@@ -315,7 +315,7 @@
 										<xsd:annotation>
 											<xsd:appinfo>
 												<xsd:documentation>
-													The java.util.concurrent.ExecutorService bean reference.
+													A java.util.concurrent.Executor bean reference.
 													Typically
 													org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor.
 													Used to execute iterator task on KafkaStreams.
