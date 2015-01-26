@@ -300,9 +300,9 @@ data from the partition will simply timeout and whenever this partition comes ba
 it would start read data from it again.
 
 Consumer configuration can also be configured with optional decoders for key and value.
-The default ones provided by Kafka are basically no-ops and would consume as byte arrays.
-If you provide an encoder for key/value in the producer, then it is recommended to provide
-corresponding decoders.
+The default decoders provided by Kafka are basically no-ops and would consume as byte arrays.
+If you provide a custom encoder for key/value in the producer, then it is recommended to provide
+corresponding decoders for the consumer.
 As discussed already in the outbound adapter, Spring Integration Kafka adapter gives Apache Avro based data
 serialization components
 out of the box. You can use any serialization component for this purpose as long as you implement the required encoder/decoder interfaces from Kafka.
@@ -312,17 +312,17 @@ implement Reflection and Specific datum based de-serialization. Here is how you 
 Message Driven Channel Adapter:
 --------------------------------------------
 
-The `KafkaMessageDrivenChannelAdapter` (`<int-kafka:message-driven-channel-adapter>`) is based on the Kafka 
-`SimpleConsumer`(https://cwiki.apache.org/confluence/display/KAFKA/0.8.0+SimpleConsumer+Example). Although it is called
-'simple', the API and usage isn't so simple. To simplify the configuration and provide the high-level API based on the 
+The `KafkaMessageDrivenChannelAdapter` (`<int-kafka:message-driven-channel-adapter>`) uses the Kafka
+`SimpleConsumer`(https://cwiki.apache.org/confluence/display/KAFKA/0.8.0+SimpleConsumer+Example) internally. Although it is called
+'simple', the API and usage is not so simple. To simplify the configuration and provide a higher-level API based on
 Spring Integration concepts, the `KafkaMessageListenerContainer` has been introduced. It supports 'leader election' 
 with `org.springframework.integration.kafka.core.ConnectionFactory` and 'offset management' with 
 `org.springframework.integration.kafka.listener.OffsetManager` abstractions. The `DefaultConnectionFactory` requires 
-`org.springframework.integration.kafka.core.Configuration` for the Kafka. `ZookeeperConfiguration` and 
-`BrokerAddressListConfiguration` are presented as options for the configuration.
+`org.springframework.integration.kafka.core.Configuration` for Kafka. `ZookeeperConfiguration` and
+`BrokerAddressListConfiguration` are presented as configuration options.
 
-The `KafkaMessageDrivenChannelAdapter` implements `MessageProducer` and based on the 'listening' logic to read the 
-`KafkaMessage` with its `Metadata` and send Spring Integration message to the provided `MessageChannel`. The 
+The `KafkaMessageDrivenChannelAdapter` implements `MessageProducer`, reads a
+`KafkaMessage` with its `Metadata` and sends it as a Spring Integration message to the provided `MessageChannel`. The
 `KafkaMessageListenerContainer` or `ConnectionFactory` and `topics` pair are required for the `MessageDrivenChannelAdapter`
 configuration. The typical Java based configuration is:
  
@@ -347,7 +347,7 @@ public MessageProducer kafkaMessageDrivenChannelAdapter() {
 }
 ```
 
-As a variant `KafkaMessageListenerContainer` can accept `org.springframework.integration.kafka.core.Partition` array 
+As a variant, the `KafkaMessageListenerContainer` can accept `org.springframework.integration.kafka.core.Partition` array
 argument to specify topics and their partitions pair.
 
 The xml configuration variant is typical too:
@@ -364,15 +364,15 @@ The xml configuration variant is typical too:
 			topics="${kafka.test.topic}"/>
 ```
 
-Where `offsetManager` is a bean of an implementation of `org.springframework.integration.kafka.listener.OffsetManager`.
+Where `offsetManager` is a bean that is an implementation of `org.springframework.integration.kafka.listener.OffsetManager`.
 The default implementation is `MetadataStoreOffsetManager`, which is based on the `MetadataStore` to store and fetch 
 `offsets` under the key based on the provided `Partition` and preconfigured `consumerId` option. The `KafkaMessageListenerContainer`
 takes care about `offsets` management during its internal process. 
  
-The `KafkaMessageListenerContainer` can be configured with the `concurrency` to run several internal 
+The `KafkaMessageListenerContainer` can be configured with `concurrency` to run several internal
 `QueueingMessageListenerInvoker` concurrent fetch tasks.
 
-See more info from `KafkaMessageDrivenChannelAdapter` and `KafkaMessageListenerContainer` JavaDocs.
+Refer to the `KafkaMessageDrivenChannelAdapter` and `KafkaMessageListenerContainer` JavaDocs for more information.
 
 Using Avro Specific support:
 
