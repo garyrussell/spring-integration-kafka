@@ -44,7 +44,7 @@
                                               value-decoder="valueDecoder"
                                               key-decoder="valueDecoder"
                                               max-messages="5000">
-				<int-kafka:topic-filter pattern="${topic.filter.pattern}"
+				<int-kafka:topic-filter pattern="#{systemProperties['foo'] + '${topic.filter.pattern}' + '.*'}"
 										streams="${topic.filter.streams}"
 										exclude="${topic.filter.exclude}"/>
             </int-kafka:consumer-configuration>

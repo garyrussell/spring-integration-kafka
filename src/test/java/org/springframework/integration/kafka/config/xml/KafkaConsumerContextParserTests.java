@@ -19,23 +19,22 @@ package org.springframework.integration.kafka.config.xml;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import kafka.consumer.Blacklist;
 
 import org.hamcrest.Matchers;
 import org.junit.Assert;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.integration.kafka.rule.KafkaRunning;
 import org.springframework.integration.kafka.support.ConsumerConfiguration;
 import org.springframework.integration.kafka.support.ConsumerMetadata;
 import org.springframework.integration.kafka.support.KafkaConsumerContext;
 import org.springframework.integration.kafka.support.TopicFilterConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import kafka.consumer.Blacklist;
 
 /**
  * @author Soby Chacko
@@ -45,10 +44,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class KafkaConsumerContextParserTests<K, V> {
+public class KafkaConsumerContextParserTests {
 
-	@ClassRule
-	public static KafkaRunning kafkaRunning = KafkaRunning.isRunning();
+//	@ClassRule
+//	public static KafkaRunning kafkaRunning = KafkaRunning.isRunning();
 
 	@Autowired
 	private ApplicationContext appContext;
@@ -56,14 +55,14 @@ public class KafkaConsumerContextParserTests<K, V> {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testConsumerContextConfiguration() {
-		final KafkaConsumerContext<K, V> consumerContext = appContext.getBean("consumerContext",
+		final KafkaConsumerContext consumerContext = appContext.getBean("consumerContext",
 				KafkaConsumerContext.class);
 		Assert.assertNotNull(consumerContext);
-		ConsumerConfiguration<K, V> cc = consumerContext.getConsumerConfiguration("default1");
-		ConsumerMetadata<K, V> cm = cc.getConsumerMetadata();
+		ConsumerConfiguration cc = consumerContext.getConsumerConfiguration("default1");
+		ConsumerMetadata cm = cc.getConsumerMetadata();
 		assertNotNull(cm);
 		TopicFilterConfiguration topicFilterConfiguration = cm.getTopicFilterConfiguration();
-		assertEquals("foo : 10", topicFilterConfiguration.toString());
+		assertEquals("barfoo.* : 10", topicFilterConfiguration.toString());
 		assertThat(topicFilterConfiguration.getTopicFilter(), Matchers.instanceOf(Blacklist.class));
 	}
 
