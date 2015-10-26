@@ -56,7 +56,6 @@ public class LoggingProducerListener extends DefaultProducerListener {
 
 	@Override
 	public void onError(String topic, Integer partition, Object key, Object payload, Exception exception) {
-		// key and payload are intentionally left out, due to security and/or size concerns
 		if (log.isErrorEnabled()) {
 			StringBuffer logOutput = new StringBuffer();
 			logOutput.append("Exception thrown when sending a message");

@@ -29,15 +29,15 @@ import org.springframework.util.Assert;
  */
 public class ProducerListenerInvokingCallback implements Callback {
 
-	private String topic;
+	private final String topic;
 
-	private Integer partition;
+	private final Integer partition;
 
-	private Object key;
+	private final Object key;
 
-	private Object payload;
+	private final Object payload;
 
-	private ProducerListener producerListener;
+	private final ProducerListener producerListener;
 
 	public ProducerListenerInvokingCallback(String topic, Integer partition, Object key, Object payload,
 											ProducerListener producerListener) {
@@ -51,7 +51,7 @@ public class ProducerListenerInvokingCallback implements Callback {
 
 	@Override
 	public void onCompletion(RecordMetadata metadata, Exception exception) {
-		if (exception == null) {
+		if (exception != null) {
 			producerListener.onError(topic,partition,key, payload,exception);
 		}
 		else {
