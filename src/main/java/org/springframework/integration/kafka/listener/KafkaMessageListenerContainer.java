@@ -270,7 +270,8 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 	 * the `errorHandler` to capture failures.
 	 *
 	 * @param autoCommitOnError false if offsets should be committed only for successful messages
-     */
+	 * @since 1.3
+	 */
 	public void setAutoCommitOnError(boolean autoCommitOnError) {
 		this.autoCommitOnError = autoCommitOnError;
 	}
@@ -492,7 +493,7 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 			public boolean isLongLived() {
 				return true;
 			}
-			
+
 			@Override
 			public void run() {
 				// fetch can complete successfully or unsuccessfully

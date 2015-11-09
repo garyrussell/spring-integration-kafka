@@ -33,8 +33,8 @@ import org.reactivestreams.Subscription;
 import org.springframework.core.task.support.ExecutorServiceAdapter;
 import org.springframework.integration.kafka.core.KafkaMessage;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
-
 import org.springframework.util.ObjectUtils;
+
 import reactor.core.processor.RingBufferProcessor;
 
 /**
@@ -58,7 +58,7 @@ class QueueingMessageListenerInvoker {
 
 	private final int capacity;
 
-	private final boolean autoAckOnError;
+	private final boolean autoCommitOnError;
 
 	private final ExecutorService executorService;
 
@@ -71,9 +71,9 @@ class QueueingMessageListenerInvoker {
 	private volatile CountDownLatch shutdownLatch;
 
 	public QueueingMessageListenerInvoker(int capacity, final OffsetManager offsetManager, Object delegate,
-			final ErrorHandler errorHandler, Executor executor, boolean autoAckOnError) {
+			final ErrorHandler errorHandler, Executor executor, boolean autoCommitOnError) {
 		this.capacity = capacity;
-		this.autoAckOnError = autoAckOnError;
+		this.autoCommitOnError = autoCommitOnError;
 		if (delegate instanceof MessageListener) {
 			this.messageListener = (MessageListener) delegate;
 			this.acknowledgingMessageListener = null;
@@ -149,13 +149,14 @@ class QueueingMessageListenerInvoker {
 	 * {@link ExecutorService} implementation that supports the execution of a single
 	 * task, deferring to the wrapped instance. Allows for interrupting the
 	 * {@link RingBufferProcessor}'s executing thread, in case it is blocking.
+	 * @since 1.3
 	 */
 	private static class CancelableSingleTaskExecutorService extends
 			AbstractExecutorService {
 
 		private Future<?> submittedTask;
 
-		private ExecutorService executor;
+		private final ExecutorService executor;
 
 		public CancelableSingleTaskExecutorService(ExecutorService executor) {
 			this.executor = executor;
@@ -232,7 +233,7 @@ class QueueingMessageListenerInvoker {
 					// concurrently
 					if (errorHandler != null) {
 						errorHandler.handle(e, kafkaMessage);
-						if (autoAckOnError) {
+						if (autoCommitOnError) {
 							offsetManager.updateOffset(kafkaMessage.getMetadata()
 									.getPartition(), kafkaMessage.getMetadata()
 									.getNextOffset());

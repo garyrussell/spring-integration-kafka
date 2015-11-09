@@ -24,7 +24,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -181,7 +180,7 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(kafkaListener, "generateMessageId", Boolean.class), equalTo(id));
 		assertThat(TestUtils.getPropertyValue(kafkaListener, "generateTimestamp", Boolean.class), equalTo(ts));
 		Object messageListenerContainer = TestUtils.getPropertyValue(kafkaListener, "messageListenerContainer");
-		assertEquals(TestUtils.getPropertyValue(messageListenerContainer,"autoCommitOnError", Boolean.class),ace);
+		assertEquals(ace, TestUtils.getPropertyValue(messageListenerContainer,"autoCommitOnError", Boolean.class));
 	}
 
 	private void assertRest(Message<?> m) {
