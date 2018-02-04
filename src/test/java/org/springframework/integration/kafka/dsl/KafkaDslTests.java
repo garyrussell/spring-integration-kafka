@@ -48,13 +48,19 @@ import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandle
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
+import org.springframework.kafka.listener.GenericMessageListenerContainer;
+import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListenerContainer;
+import org.springframework.kafka.listener.config.ContainerProperties;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -64,6 +70,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.retry.support.RetryTemplate;
@@ -88,8 +96,13 @@ public class KafkaDslTests {
 
 	private static final String TEST_TOPIC3 = "test-topic3";
 
+	private static final String TEST_TOPIC4 = "test-topic4";
+
+	private static final String TEST_TOPIC5 = "test-topic5";
+
 	@ClassRule
-	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, TEST_TOPIC1, TEST_TOPIC2, TEST_TOPIC3);
+	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, TEST_TOPIC1, TEST_TOPIC2, TEST_TOPIC3,
+			TEST_TOPIC4, TEST_TOPIC5);
 
 	@Autowired
 	@Qualifier("sendToKafkaFlow.input")
@@ -129,6 +142,9 @@ public class KafkaDslTests {
 
 	@Autowired
 	private ContextConfiguration config;
+
+	@Autowired
+	private Gate gate;
 
 	@Test
 	public void testKafkaAdapters() throws Exception {
@@ -195,8 +211,14 @@ public class KafkaDslTests {
 		assertThat(this.config.fromSource).isEqualTo("foo");
 	}
 
+	@Test
+	public void testGateways() {
+		assertThat(this.gate.exchange(TEST_TOPIC4, "foo")).isEqualTo("FOO");
+	}
+
 	@Configuration
 	@EnableIntegration
+	@EnableKafka
 	public static class ContextConfiguration {
 
 		private final CountDownLatch latch = new CountDownLatch(1);
@@ -307,6 +329,40 @@ public class KafkaDslTests {
 		}
 
 
+		@Bean
+		public IntegrationFlow outboundGateFlow() {
+			return IntegrationFlows.from(Gate.class)
+					.handle(Kafka.outboundGateway(producerFactory(), replyContainer())
+							.replyTopic(TEST_TOPIC5))
+					.get();
+		}
+
+		private GenericMessageListenerContainer<Integer, String> replyContainer() {
+			ContainerProperties containerProperties = new ContainerProperties(TEST_TOPIC5);
+			containerProperties.setGroupId("gate");
+			return new KafkaMessageListenerContainer<>(consumerFactory(), containerProperties);
+		}
+
+		// TODO: change to inbound gateway when implemented
+		@Bean
+		public ConcurrentKafkaListenerContainerFactory<Integer, String> kafkaListenerContainerFactory() {
+			ConcurrentKafkaListenerContainerFactory<Integer, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
+			factory.setConsumerFactory(consumerFactory());
+			factory.setReplyTemplate(new KafkaTemplate<Integer, String>(producerFactory()));
+			return factory;
+		}
+
+		@KafkaListener(id = "gateServer", topics = TEST_TOPIC4)
+		@SendTo
+		public String listen(String in) {
+			return in.toUpperCase();
+		}
+
 	}
 
+	public interface Gate {
+
+		String exchange(@Header(KafkaHeaders.TOPIC) String topic, String out);
+
+	}
 }
